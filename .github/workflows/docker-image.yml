@@ -1,0 +1,142 @@
+name: Docker Image CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+env:
+  KEA_VERSION: 2.6.2
+
+jobs:
+  kea:
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # =========================
+      # kea-dhcp4
+      # =========================
+      - name: kea-dhcp4 metadata
+        id: kea_dhcp4_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/adamcavendish/isc/kea-dhcp4
+          tags: ${{ env.KEA_VERSION }}
+      - name: kea-dhcp4 Docker Build
+        id: kea_dhcp4_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: ${{ steps.kea_dhcp4_meta.outputs.tags }}
+          labels: ${{ steps.kea_dhcp4_meta.outputs.labels }}
+          build-args: |
+            KEA_VERSION=${{ env.KEA_VERSION }}
+          target: kea-dhcp4
+          push: ${{ github.event_name != 'pull_request' }}
+      - name: kea-dhcp4 Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/adamcavendish/isc/kea-dhcp4
+          subject-digest: ${{ steps.kea_dhcp4_build.outputs.digest }}
+          push-to-registry: true
+
+      # =========================
+      # kea-dhcp6
+      # =========================
+      - name: kea-dhcp6 metadata
+        id: kea_dhcp6_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/adamcavendish/isc/kea-dhcp6
+          tags: ${{ env.KEA_VERSION }}
+      - name: kea-dhcp6 Docker Build
+        id: kea_dhcp6_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: ${{ steps.kea_dhcp6_meta.outputs.tags }}
+          labels: ${{ steps.kea_dhcp6_meta.outputs.labels }}
+          build-args: |
+            KEA_VERSION=${{ env.KEA_VERSION }}
+          target: kea-dhcp6
+          push: ${{ github.event_name != 'pull_request' }}
+      - name: kea-dhcp6 Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/adamcavendish/isc/kea-dhcp6
+          subject-digest: ${{ steps.kea_dhcp6_build.outputs.digest }}
+          push-to-registry: true
+
+      # =========================
+      # kea-ctrl-agent
+      # =========================
+      - name: kea-ctrl-agent metadata
+        id: kea_ctrl_agent_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/adamcavendish/isc/kea-ctrl-agent
+          tags: ${{ env.KEA_VERSION }}
+      - name: kea-ctrl-agent Docker Build
+        id: kea_ctrl_agent_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: ${{ steps.kea_ctrl_agent_meta.outputs.tags }}
+          labels: ${{ steps.kea_ctrl_agent_meta.outputs.labels }}
+          build-args: |
+            KEA_VERSION=${{ env.KEA_VERSION }}
+          target: kea-ctrl-agent
+          push: ${{ github.event_name != 'pull_request' }}
+      - name: kea-ctrl-agent Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/adamcavendish/isc/kea-ctrl-agent
+          subject-digest: ${{ steps.kea_ctrl_agent_build.outputs.digest }}
+          push-to-registry: true
+
+      # =========================
+      # kea-dhcp-ddns
+      # =========================
+      - name: kea-dhcp-ddns metadata
+        id: kea_dhcp_ddns
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/adamcavendish/isc/kea-dhcp-ddns
+          tags: ${{ env.KEA_VERSION }}
+      - name: kea-dhcp-ddns Docker Build
+        id: kea_dhcp_ddns_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: ${{ steps.kea_dhcp_ddns.outputs.tags }}
+          labels: ${{ steps.kea_dhcp_ddns.outputs.labels }}
+          build-args: |
+            KEA_VERSION=${{ env.KEA_VERSION }}
+          target: kea-dhcp-ddns
+          push: ${{ github.event_name != 'pull_request' }}
+      - name: kea-dhcp-ddns Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/adamcavendish/isc/kea-dhcp-ddns
+          subject-digest: ${{ steps.kea_dhcp_ddns_build.outputs.digest }}
+          push-to-registry: true
